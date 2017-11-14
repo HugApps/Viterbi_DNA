@@ -1,5 +1,6 @@
 import random
 import math
+import copy
 
 #####################################################
 #####################################################
@@ -48,14 +49,14 @@ def rand_multinomial_iter(iterator):
     return 0
 
 class HMM():
-
+    #0.5*0.169*0.01*0.169
     def __init__(self):
         self.num_states = 2
         self.prior = [0.5, 0.5]
         self.transition = [[0.999, 0.001], [0.01, 0.99]]
         self.emission = [{"A": 0.291, "T": 0.291, "C": 0.209, "G": 0.209},
                          {"A": 0.169, "T": 0.169, "C": 0.331, "G": 0.331}]
-
+        self.path=[]
     # Generates a sequence of states and characters from
     # the HMM model.
     # - length: Length of output sequence
@@ -82,8 +83,27 @@ class HMM():
     # Computes the (natural) log probability of sequence given a sequence of states.
     def logprob(self, sequence, states):
         ###########################################
+        probability =[]
+
+        for i in range(len(states)):
+            if i ==0:
+                prior_prob = math.log(10,self.prior[states[i]])
+                prob_emission = math.log(10,self.emission[states[i]][sequence[i]])
+                prob_of_state = prior_prob * prob_emission
+                probability.append(prob_of_state)
         # Start your code
+            else:
+                prob_emission = math.log(10,self.emission[states[i]][sequence[i]])
+                #transit from previous state to current
+                prob_transition = math.log(10,self.transition[states[i-1]][states[i]])
+                prob_of_state = probability[i-1]*prob_transition*prob_emission
+                probability.append(prob_of_state)
+        log_prob =1
+        for prob in probability:
+            print(prob)
+            log_prob = log_prob * prob
         print("My code here")
+        return log_prob
         # End your code
         ###########################################
 
@@ -94,7 +114,20 @@ class HMM():
     def viterbi(self, sequence):
         ###########################################
         # Start your code
+        output_list=[]
+        for x in range(len(sequence)):
+            #print(sequence[x])
+            argmax = []
+            for state in range(self.num_states):
+                new_state =[]
+                next_state = copy.deepcopy(output_list)
+                next_state.append(state)
+                argmax.append(self.logprob(sequence,next_state))
+            #print(argmax.index(max(argmax)))
+            output_list.append(argmax.index(max(argmax)))
+           # print(output_list)
         print("My code here")
+        return output_list
         # End your code
         ###########################################
 
@@ -120,7 +153,9 @@ hmm = HMM()
 
 sequence = read_sequence("small.txt")
 viterbi = hmm.viterbi(sequence)
+print(viterbi)
 logprob = hmm.logprob(sequence, viterbi)
+print(logprob)
 write_output("my_small_output.txt", logprob, viterbi)
 
 
