@@ -87,21 +87,20 @@ class HMM():
 
         for i in range(len(states)):
             if i ==0:
-                prior_prob = math.log(10,self.prior[states[i]])
-                prob_emission = math.log(10,self.emission[states[i]][sequence[i]])
+                prior_prob = math.log(self.prior[states[i]])
+                prob_emission = math.log(self.emission[states[i]][sequence[i]])
                 prob_of_state = prior_prob * prob_emission
                 probability.append(prob_of_state)
         # Start your code
             else:
-                prob_emission = math.log(10,self.emission[states[i]][sequence[i]])
+                prob_emission = math.log(self.emission[states[i]][sequence[i]])
                 #transit from previous state to current
-                prob_transition = math.log(10,self.transition[states[i-1]][states[i]])
+                prob_transition = math.log(self.transition[states[i-1]][states[i]])
                 prob_of_state = probability[i-1]*prob_transition*prob_emission
                 probability.append(prob_of_state)
-        log_prob =1
+        log_prob =0
         for prob in probability:
-            print(prob)
-            log_prob = log_prob * prob
+            log_prob = log_prob + prob
         print("My code here")
         return log_prob
         # End your code
@@ -113,23 +112,43 @@ class HMM():
     # return: list of state indices, e.g. [0,0,0,1,1,0,0,...]
     def viterbi(self, sequence):
         ###########################################
-        # Start your code
-        output_list=[]
-        for x in range(len(sequence)):
-            #print(sequence[x])
-            argmax = []
-            for state in range(self.num_states):
-                new_state =[]
-                next_state = copy.deepcopy(output_list)
-                next_state.append(state)
-                argmax.append(self.logprob(sequence,next_state))
-            #print(argmax.index(max(argmax)))
-            output_list.append(argmax.index(max(argmax)))
-           # print(output_list)
-        print("My code here")
-        return output_list
+        # Start your cod
+        steps = []
+        steps[0][0]= self.prior[0] *self.emission[0][sequence[0]]
+        steps[0][1] = self.prior[1] *self.emission[1][sequence[0]]
+        for sym in range(1,len(sequence)):
+            L_to_L
+            H_to_L
+            H_to_H
+            L_to_H
+            steps[sym][0][0] =
+
+                # need to consider transition probabilities
+                # probability of state 0 from previous probabilities
+
+                #probability of state 0 give symb[i] when intial state came from H (H->L)
+
+                #probability of state 0 givent sym[i] when intial state came from L (H->L)
+                 # SUM
+                #probability of state 1 given symb[i] when intial state came from H (H->L)
+
+                #probability of state 1 given symb[i] when intiatle state came from L (L->L)
+                    #SUM
+                # store max
+
         # End your code
         ###########################################
+    def getSequence(self,path):
+        outputsequence=""
+        for tup in path:
+            outputsequence = outputsequence + tup[0]
+            print(outputsequence)
+        return outputsequence
+    def obtain_max(self,probL, probR):
+        if max(probL, probR) == probL:
+            return ('0', probL)
+        else:
+            return ('1', probR)
 
 def read_sequence(filename):
     with open(filename, "r") as f:
@@ -154,9 +173,9 @@ hmm = HMM()
 sequence = read_sequence("small.txt")
 viterbi = hmm.viterbi(sequence)
 print(viterbi)
-logprob = hmm.logprob(sequence, viterbi)
-print(logprob)
-write_output("my_small_output.txt", logprob, viterbi)
+#logprob = hmm.logprob(sequence, viterbi)
+
+write_output("my_small_output.txt", 0, viterbi)
 
 
 #sequence = read_sequence("ecoli.txt")
