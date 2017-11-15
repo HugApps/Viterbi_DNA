@@ -113,15 +113,18 @@ class HMM():
     def viterbi(self, sequence):
         ###########################################
         # Start your cod
-        steps = []
+        steps = [][]
         steps[0][0]= self.prior[0] *self.emission[0][sequence[0]]
         steps[0][1] = self.prior[1] *self.emission[1][sequence[0]]
         for sym in range(1,len(sequence)):
-            L_to_L
-            H_to_L
-            H_to_H
-            L_to_H
-            steps[sym][0][0] =
+            # 1= move, 0 = stay
+            L_to_L = steps[sym-1][0] * self.transition[0][0] *self.emission[0][sequence[sym]]
+            H_to_L = steps[sym-1][1] * self.transition[1][1] *self.emission[0][sequence[sym]]
+            H_to_H = steps[sym-1][1] * self.transition[1][0] *self.emission[1][sequence[sym]]
+            L_to_H = steps[sym-1][0] * self.transition[0][1] *self.emission[1][sequence[sym]]
+            steps[sym][0] = L_to_L + H_to_L
+            steps[sym][1] = L_to_H +H_to_H
+        return steps
 
                 # need to consider transition probabilities
                 # probability of state 0 from previous probabilities
