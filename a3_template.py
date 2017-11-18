@@ -114,13 +114,18 @@ class HMM():
         ###########################################
         # Start your cod
         steps = [[0 for x in range(2)] for y in range(len(sequence))]
-        path=[]
+        prev_table=  [[0 for x in range(2)] for y in range(len(sequence))]
+        prev_table[0][0] = -1
+        prev_table[0][1] = -1
+
         steps[0][0]= math.log(self.prior[0],2) + math.log(self.emission[0][sequence[0]],2)
         steps[0][1] = math.log(self.prior[1],2) + math.log(self.emission[1][sequence[0]],2)
 
 
         for sym in range(1,len(sequence)):
             # 1= move, 0 = stay
+            emission_H = math.log(self.emission[1][sequence[sym]],2)
+            emission_L = math.log(self.emission[0][sequence[sym]],2)
 
             #L_to_L = math.log(steps[sym-1][0],2) + math.log(self.transition[0][1],2) + math.log(self.emission[0][sequence[sym]],2)
             L_to_L = self.prob_of_path((0,0),
@@ -140,33 +145,43 @@ class HMM():
                                        steps[sym-1][0],
                                        sequence[sym])
 
-            steps[sym][0] = max(L_to_L, H_to_L)
-            steps[sym][1] = max(L_to_H , H_to_H)
+            steps[sym][0] = emission_L + max(L_to_L , H_to_L)
+            steps[sym][1] = emission_H + max(L_to_H , H_to_H)
+            #came from L
+            prev_table[sym][0] =  0 if  max(L_to_L, H_to_L) == L_to_L else 1
+            #came from H
 
-
-
-        return self.back_track(steps)
+            prev_table[sym][1] =  0 if max(L_to_H , H_to_H) == L_to_H else 1
+        print(steps)
+        return self.back_track(steps,prev_table)
 
                 # need to consider transition probabilities
 
-    def back_track(self,prob_table):
+    def back_track(self,prob_table,prev_table):
         path = []
-        #backtrack
-        for entry  in range(len(prob_table)-1,-1,-1):
-            L_prob = prob_table[entry][0]
-            R_prob = prob_table[entry][1]
-            max_prob = max(L_prob,R_prob)
-            if max_prob == L_prob:
-                path.append(0)
-            else:
-                path.append(1)
-        path.reverse()
+        #find max for last element of sewuence
+        last_sym = prob_table[len(prob_table)-1]
+        print(last_sym)
+        start_index = 0
+        if(max(last_sym[0],last_sym[1])) == last_sym[0]:
+            start_index = 0
+           # path.append(0)
+        else:
+            start_index = 1
+            #path.append(1)
+        prev_table.reverse()
+        for index in range(len(prev_table)):
+
+            prev_node = prev_table[index][start_index]
+            path.append( prev_node)
+            start_index = prev_node
+
         return path
 
     def prob_of_path(self,path,prev_probablity,sym):
         start = path[0]
         end = path[1]
-        return prev_probablity + math.log(self.transition[start][end],2) + math.log(self.emission[path[1]][sym],2)
+        return prev_probablity + math.log(self.transition[start][end],2)
 
     def getSequence(self,path):
         outputsequence=""
@@ -200,7 +215,7 @@ def write_output(filename, logprob, states):
 
 hmm = HMM()
 
-sequence = read_sequence("ecoli.txt")
+sequence = read_sequence("small.txt")
 viterbi = hmm.viterbi(sequence)
 print(viterbi)
 #logprob = hmm.logprob(sequence, viterbi)
