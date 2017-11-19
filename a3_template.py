@@ -165,12 +165,12 @@ class HMM():
         start_index = 0
         if(max(last_sym[0],last_sym[1])) == last_sym[0]:
             start_index = 0
-           # path.append(0)
+            path.append(0)
         else:
             start_index = 1
-            #path.append(1)
-        prev_table.reverse()
-        for index in range(len(prev_table)):
+            path.append(1)
+        #prev_table.reverse()
+        for index in range(len(prev_table)-1,-1,-1):
 
             prev_node = prev_table[index][start_index]
             path.append( prev_node)
