@@ -170,12 +170,12 @@ class HMM():
             start_index = 1
             path.append(1)
         #prev_table.reverse()
-        for index in range(len(prev_table)-1,-1,-1):
+        for index in range(len(prev_table)-1,0,-1):
 
             prev_node = prev_table[index][start_index]
             path.append( prev_node)
             start_index = prev_node
-
+        path.reverse()
         return path
 
     def prob_of_path(self,path,prev_probablity,sym):
