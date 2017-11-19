@@ -84,25 +84,19 @@ class HMM():
     def logprob(self, sequence, states):
         ###########################################
         probability =[]
+        current_state = states[0]
+        current_obs = sequence[0]
+        probability.append(math.log(self.emission[current_state][current_obs]*self.prior[current_state],2))
+        print(probability)
+        for index in range(1,len(sequence)):
+            current_obs = sequence[index]
+            current_state = states[index]
+            prev_state = states[index -1]
+            trans_prob = self.prob_of_path((prev_state,current_state),probability[index-1],current_obs)
+            emission_prob = self.emission[current_state][current_obs]
+            probability.append(trans_prob + math.log(emission_prob,2))
 
-        for i in range(len(states)):
-            if i ==0:
-                prior_prob = math.log(self.prior[states[i]])
-                prob_emission = math.log(self.emission[states[i]][sequence[i]])
-                prob_of_state = prior_prob * prob_emission
-                probability.append(prob_of_state)
-        # Start your code
-            else:
-                prob_emission = math.log(self.emission[states[i]][sequence[i]])
-                #transit from previous state to current
-                prob_transition = math.log(self.transition[states[i-1]][states[i]])
-                prob_of_state = probability[i-1]*prob_transition*prob_emission
-                probability.append(prob_of_state)
-        log_prob =0
-        for prob in probability:
-            log_prob = log_prob + prob
-        print("My code here")
-        return log_prob
+        return sum(probability)
         # End your code
         ###########################################
 
@@ -218,9 +212,9 @@ hmm = HMM()
 sequence = read_sequence("small.txt")
 viterbi = hmm.viterbi(sequence)
 print(viterbi)
-#logprob = hmm.logprob(sequence, viterbi)
+logprob = hmm.logprob(sequence, viterbi)
 
-write_output("my_small_output.txt", 0, viterbi)
+write_output("my_small_output.txt",logprob, viterbi)
 
 
 #sequence = read_sequence("ecoli.txt")
