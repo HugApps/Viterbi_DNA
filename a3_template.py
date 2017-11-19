@@ -83,76 +83,82 @@ class HMM():
     # Computes the (natural) log probability of sequence given a sequence of states.
     def logprob(self, sequence, states):
         ###########################################
-        log_prob = 1
-        ##First probability = emission*Prior
-        current_state =states[0]
-        log_prob = math.log(self.prior[current_state]*self.emission[current_state][sequence[0]],2)
-        for s in range(1,len(sequence),1):
-            current_state=states[s]
-            emit_prob = math.log(self.emission[current_state][sequence[s]],2)
-            # total prob = probability of previous  state transitioning to current state and emission
-            prev_state = states[s -1]
-            transition =  self.prob_of_path((prev_state,current_state),log_prob,sequence[s])
-            log_prob = log_prob + transition + emit_prob
+        probability =[]
 
+        for i in range(len(states)):
+            if i ==0:
+                prior_prob = math.log(self.prior[states[i]])
+                prob_emission = math.log(self.emission[states[i]][sequence[i]])
+                prob_of_state = prior_prob * prob_emission
+                probability.append(prob_of_state)
+        # Start your code
+            else:
+                prob_emission = math.log(self.emission[states[i]][sequence[i]])
+                #transit from previous state to current
+                prob_transition = math.log(self.transition[states[i-1]][states[i]])
+                prob_of_state = probability[i-1]*prob_transition*prob_emission
+                probability.append(prob_of_state)
+        log_prob =0
+        for prob in probability:
+            log_prob = log_prob + prob
+        print("My code here")
         return log_prob
         # End your code
         ###########################################
 
-    def viterbi_table(self,sequence):
-        steps = [[0 for x in range(2)] for y in range(len(sequence))]
-        prev_table = []
-        prev_table[0] = -1
 
-
-        steps[0][0] = math.log(self.prior[0], 2) + math.log(self.emission[0][sequence[0]], 2)
-        steps[0][1] = math.log(self.prior[1], 2) + math.log(self.emission[1][sequence[0]], 2)
-
-        for sym in range(1, len(sequence)):
-            # 1= move, 0 = stay
-            emission_H = math.log(self.emission[1][sequence[sym]], 2)
-            emission_L = math.log(self.emission[0][sequence[sym]], 2)
-
-            # L_to_L = math.log(steps[sym-1][0],2) + math.log(self.transition[0][1],2) + math.log(self.emission[0][sequence[sym]],2)
-            L_to_L = self.prob_of_path((0, 0),
-                                       steps[sym - 1][0],
-                                       sequence[sym]
-                                       )
-            # H_to_L = steps[sym-1][1] * self.transition[1][1] *self.emission[0][sequence[sym]]
-            H_to_L = self.prob_of_path((1, 0),
-                                       steps[sym - 1][1],
-                                       sequence[sym])
-            # H_to_H = steps[sym-1][1] * self.transition[1][0] *self.emission[1][sequence[sym]]
-            H_to_H = self.prob_of_path((1, 1),
-                                       steps[sym - 1][1],
-                                       sequence[sym])
-            # L_to_H = steps[sym-1][0] * self.transition[0][1] *self.emission[1][sequence[sym]]
-            L_to_H = self.prob_of_path((0, 1),
-                                       steps[sym - 1][0],
-                                       sequence[sym])
-            max([L_to_L,L_to_H,H_to_L,H_to_H])
-            steps[sym][0] = emission_L + max(L_to_L, H_to_L)
-            steps[sym][1] = emission_H + max(L_to_H, H_to_H)
-            # came from L
-            prev_table[sym][0] = 0 if max(L_to_L, H_to_L) == L_to_L else 1
-            # came from H
-
-            prev_table[sym][1] = 0 if max(L_to_H, H_to_H) == L_to_H else 1
-
-        return (steps,prev_table)
     # Outputs the most likely sequence of states given an emission sequence
     # - sequence: String with characters [A,C,T,G]
     # return: list of state indices, e.g. [0,0,0,1,1,0,0,...]
     def viterbi(self, sequence):
         ###########################################
-        probs_table = self.viterbi_table(sequence)
-        return self.back_track(probs_table[0],probs_table[1])
+        # Start your cod
+        steps = [[0 for x in range(2)] for y in range(len(sequence))]
+        prev_table=  [[0 for x in range(2)] for y in range(len(sequence))]
+        prev_table[0][0] = -1
+        prev_table[0][1] = -1
+
+        steps[0][0]= math.log(self.prior[0],2) + math.log(self.emission[0][sequence[0]],2)
+        steps[0][1] = math.log(self.prior[1],2) + math.log(self.emission[1][sequence[0]],2)
+
+
+        for sym in range(1,len(sequence)):
+            # 1= move, 0 = stay
+            emission_H = math.log(self.emission[1][sequence[sym]],2)
+            emission_L = math.log(self.emission[0][sequence[sym]],2)
+
+            #L_to_L = math.log(steps[sym-1][0],2) + math.log(self.transition[0][1],2) + math.log(self.emission[0][sequence[sym]],2)
+            L_to_L = self.prob_of_path((0,0),
+                                       steps[sym-1][0],
+                                       sequence[sym]
+                                       )
+           # H_to_L = steps[sym-1][1] * self.transition[1][1] *self.emission[0][sequence[sym]]
+            H_to_L = self.prob_of_path((1,0),
+                                       steps[sym-1][1],
+                                       sequence[sym])
+           # H_to_H = steps[sym-1][1] * self.transition[1][0] *self.emission[1][sequence[sym]]
+            H_to_H = self.prob_of_path((1,1),
+                                       steps[sym-1][1],
+                                       sequence[sym])
+           # L_to_H = steps[sym-1][0] * self.transition[0][1] *self.emission[1][sequence[sym]]
+            L_to_H = self.prob_of_path((0,1),
+                                       steps[sym-1][0],
+                                       sequence[sym])
+
+            steps[sym][0] = emission_L + max(L_to_L , H_to_L)
+            steps[sym][1] = emission_H + max(L_to_H , H_to_H)
+            #came from L
+            prev_table[sym][0] =  0 if  max(L_to_L, H_to_L) == L_to_L else 1
+            #came from H
+
+            prev_table[sym][1] =  0 if max(L_to_H , H_to_H) == L_to_H else 1
+        print(steps)
+        return self.back_track(steps,prev_table)
 
                 # need to consider transition probabilities
 
     def back_track(self,prob_table,prev_table):
         path = []
-        print(prob_table)
         #find max for last element of sewuence
         last_sym = prob_table[len(prob_table)-1]
         print(last_sym)
@@ -163,15 +169,13 @@ class HMM():
         else:
             start_index = 1
             path.append(1)
-
-        for index in range(len(prev_table)-1,0,-1):
+        #prev_table.reverse()
+        for index in range(len(prev_table)-1,-1,-1):
 
             prev_node = prev_table[index][start_index]
             path.append( prev_node)
             start_index = prev_node
-        print(path.__len__())
-        print(prob_table.__len__())
-        print(prev_table)
+
         return path
 
     def prob_of_path(self,path,prev_probablity,sym):
@@ -214,14 +218,14 @@ hmm = HMM()
 sequence = read_sequence("small.txt")
 viterbi = hmm.viterbi(sequence)
 print(viterbi)
-logprob = hmm.logprob(sequence, viterbi)
+#logprob = hmm.logprob(sequence, viterbi)
 
-write_output("my_small_output.txt", logprob, viterbi)
+write_output("my_small_output.txt", 0, viterbi)
 
 
 #sequence = read_sequence("ecoli.txt")
 #viterbi = hmm.viterbi(sequence)
-logprob = hmm.logprob(sequence, viterbi)
+#logprob = hmm.logprob(sequence, viterbi)
 #write_output("ecoli_output.txt", logprob, viterbi)
 
 
