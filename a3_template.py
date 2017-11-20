@@ -86,17 +86,18 @@ class HMM():
         probability =[]
         current_state = states[0]
         current_obs = sequence[0]
-        probability.append(math.log(self.emission[current_state][current_obs]*self.prior[current_state],2))
-        print(probability)
+        probability = math.log(self.prior[current_state]) + math.log(self.emission[current_state][current_obs])
         for index in range(1,len(sequence)):
+
             current_obs = sequence[index]
             current_state = states[index]
             prev_state = states[index -1]
-            trans_prob = self.prob_of_path((prev_state,current_state),probability[index-1],current_obs)
-            emission_prob = self.emission[current_state][current_obs]
-            probability.append(trans_prob + math.log(emission_prob,2))
+            trans_prob = math.log(self.transition[prev_state][current_state])
+            #trans_prob = self.prob_of_path((prev_state,current_state),probability[index-1],current_obs)
+            emission_prob = math.log(self.emission[current_state][current_obs])
+            probability =  trans_prob + emission_prob + probability
 
-        return sum(probability)
+        return probability
         # End your code
         ###########################################
 
@@ -112,14 +113,14 @@ class HMM():
         prev_table[0][0] = -1
         prev_table[0][1] = -1
 
-        steps[0][0]= math.log(self.prior[0],2) + math.log(self.emission[0][sequence[0]],2)
-        steps[0][1] = math.log(self.prior[1],2) + math.log(self.emission[1][sequence[0]],2)
+        steps[0][0]= math.log(self.prior[0]) + math.log(self.emission[0][sequence[0]])
+        steps[0][1] = math.log(self.prior[1]) + math.log(self.emission[1][sequence[0]])
 
 
         for sym in range(1,len(sequence)):
             # 1= move, 0 = stay
-            emission_H = math.log(self.emission[1][sequence[sym]],2)
-            emission_L = math.log(self.emission[0][sequence[sym]],2)
+            emission_H = math.log(self.emission[1][sequence[sym]])
+            emission_L = math.log(self.emission[0][sequence[sym]])
 
             #L_to_L = math.log(steps[sym-1][0],2) + math.log(self.transition[0][1],2) + math.log(self.emission[0][sequence[sym]],2)
             L_to_L = self.prob_of_path((0,0),
@@ -175,7 +176,7 @@ class HMM():
     def prob_of_path(self,path,prev_probablity,sym):
         start = path[0]
         end = path[1]
-        return prev_probablity + math.log(self.transition[start][end],2)
+        return prev_probablity + math.log(self.transition[start][end])
 
     def getSequence(self,path):
         outputsequence=""
@@ -211,15 +212,14 @@ hmm = HMM()
 
 sequence = read_sequence("small.txt")
 viterbi = hmm.viterbi(sequence)
-print(viterbi)
 logprob = hmm.logprob(sequence, viterbi)
 
 write_output("my_small_output.txt",logprob, viterbi)
 
 
-#sequence = read_sequence("ecoli.txt")
-#viterbi = hmm.viterbi(sequence)
-#logprob = hmm.logprob(sequence, viterbi)
-#write_output("ecoli_output.txt", logprob, viterbi)
+sequence = read_sequence("ecoli.txt")
+viterbi = hmm.viterbi(sequence)
+logprob = hmm.logprob(sequence, viterbi)
+write_output("ecoli_output.txt", logprob, viterbi)
 
 
